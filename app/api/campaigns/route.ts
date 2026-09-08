@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { CampaignCategory, CopyCampaign, CopyClient, CopyStep } from "@/lib/copy-types";
 
+export const dynamic = "force-dynamic";
+
 export type { CampaignCategory, CopyCampaign, CopyClient, CopyStep };
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!;
