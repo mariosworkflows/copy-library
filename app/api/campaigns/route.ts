@@ -62,7 +62,7 @@ type ClassifyResult = { category: CampaignCategory; subcategory?: string };
 async function classifyCampaigns(
   campaigns: ClassifyInput[]
 ): Promise<Map<string, ClassifyResult>> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || campaigns.length === 0) return new Map();
 
   const CHUNK_SIZE = 80;
@@ -107,23 +107,23 @@ Return ONLY a JSON array, no markdown, no explanation:
 [{"id":"...","category":"cold|signal|micro","subcategory":"subcategory_value or null for cold"}]`;
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
+          "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
+          model: "gpt-4o-mini",
           max_tokens: 4096,
+          temperature: 0,
           messages: [{ role: "user", content: prompt }],
         }),
       });
 
       if (!res.ok) continue;
       const data = await res.json();
-      const text: string = data.content?.[0]?.text ?? "[]";
+      const text: string = data.choices?.[0]?.message?.content ?? "[]";
       const classifications = JSON.parse(text.trim());
       for (const c of classifications) {
         resultMap.set(c.id, {
