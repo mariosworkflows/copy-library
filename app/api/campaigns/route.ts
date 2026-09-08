@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import type { CampaignCategory, CopyCampaign, CopyClient, CopyStep } from "@/lib/copy-types";
+
+export type { CampaignCategory, CopyCampaign, CopyClient, CopyStep };
 
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID!;
@@ -53,30 +56,87 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-export interface CopyStep {
-  id: string;
-  label: string;
-  subject?: string;
-  body: string;
-  channel: "email" | "linkedin";
-}
+type ClassifyInput = { id: string; name: string; subject: string; body: string };
+type ClassifyResult = { category: CampaignCategory; subcategory?: string };
 
-export interface CopyCampaign {
-  id: string;
-  name: string;
-  client: string;
-  clientDomain?: string;
-  channel: "Email" | "LinkedIn";
-  positiveReplies: number;
-  positiveReplyRate: number | null;
-  steps: CopyStep[];
-}
+async function classifyCampaigns(
+  campaigns: ClassifyInput[]
+): Promise<Map<string, ClassifyResult>> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey || campaigns.length === 0) return new Map();
 
-export interface CopyClient {
-  id: string;
-  name: string;
-  domain?: string;
-  campaigns: CopyCampaign[];
+  const CHUNK_SIZE = 80;
+  const resultMap = new Map<string, ClassifyResult>();
+
+  for (let i = 0; i < campaigns.length; i += CHUNK_SIZE) {
+    const chunk = campaigns.slice(i, i + CHUNK_SIZE);
+
+    const prompt = `You are an expert at classifying B2B outbound sales campaigns by their strategic intent. Be precise — the category must reflect what actually triggered or shaped the campaign, not just the tone.
+
+CATEGORIES:
+
+1. cold — Pure ICP (Ideal Customer Profile) outreach with no specific trigger or buying signal. Targets companies based on fit only (industry, size, tech stack). No event or behavior drove the outreach.
+
+2. signal — Triggered by a specific buying signal or behavioral event. The copy references or implies the trigger. Choose one subcategory:
+   - funding: Company recently raised a funding round (seed, Series A/B/C, etc.)
+   - new_hire: A specific person recently joined the company (new VP, CRO, CMO, etc.)
+   - job_opening: Company is actively hiring for specific roles, signaling a need
+   - customer_alumni: Targeting people who previously worked at a company that used a specific product/service, now at a new company
+   - linkedin_engagement: Person recently liked, commented, followed, or engaged on LinkedIn
+   - competitor_followers: Person follows a competitor LinkedIn page or uses a competitor product
+   - website_visitor: Person visited a website (detected via RB2B, Warmly, intent data, etc.)
+
+3. micro — Small, targeted invite campaigns. Choose one subcategory:
+   - webinar: Inviting to a webinar, online workshop, or virtual session
+   - event_invite: Inviting to an in-person event, conference, dinner, or meetup
+
+CLASSIFICATION RULES:
+- Read campaign name, subject line, and email body together — all three matter
+- Name keywords: "funding/funded/raise/raised" → funding; "new hire/new VP/joined" → new_hire; "hiring/job opening/headcount" → job_opening; "alumni" → customer_alumni; "linkedin/engagement/follower" → linkedin/competitor; "visitor/rb2b/warmly/website" → website_visitor; "webinar/workshop" → webinar; "event/dinner/conference/summit/invite" → event_invite
+- When body says "saw you raised", "congrats on the funding" → funding signal
+- When body says "noticed you're hiring", "saw the job posting" → job_opening signal
+- When body says "saw your post on LinkedIn" or "you liked our post" → linkedin_engagement
+- When in doubt between cold and signal: if ANY trigger is referenced in the copy, classify as signal
+- Customer alumni: look for "before joining", "at your previous company", "used [product] at [OldCo]"
+- Only use cold if there is genuinely no signal or event referenced anywhere
+
+Campaigns:
+${JSON.stringify(chunk.map(c => ({ id: c.id, name: c.name, subject: c.subject, body: c.body.slice(0, 350) })), null, 2)}
+
+Return ONLY a JSON array, no markdown, no explanation:
+[{"id":"...","category":"cold|signal|micro","subcategory":"subcategory_value or null for cold"}]`;
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 4096,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+
+      if (!res.ok) continue;
+      const data = await res.json();
+      const text: string = data.content?.[0]?.text ?? "[]";
+      const classifications = JSON.parse(text.trim());
+      for (const c of classifications) {
+        resultMap.set(c.id, {
+          category: (c.category ?? "cold") as CampaignCategory,
+          subcategory: c.subcategory ?? undefined,
+        });
+      }
+    } catch {
+      // silently skip — campaigns will default to "cold"
+    }
+  }
+
+  return resultMap;
 }
 
 export async function GET() {
@@ -119,12 +179,12 @@ export async function GET() {
     }
 
     const entries = Array.from(clientKeyMap.entries());
-    const clientResults = await Promise.allSettled(
+    const rawClients = await Promise.allSettled(
       entries.map(async ([clientId, { name, apiKey }]) => {
         const data = await instantlyGet(apiKey, "campaigns", { limit: "100" });
         if (!data) return null;
 
-        const campaigns: CopyCampaign[] = [];
+        const campaigns: Omit<CopyCampaign, "category" | "subcategory">[] = [];
         for (const c of data.items ?? []) {
           const steps: CopyStep[] = [];
           const seqs: { steps: { type: string; variants: { subject: string; body: string }[] }[] }[] =
@@ -162,14 +222,44 @@ export async function GET() {
           });
         }
 
-        campaigns.sort((a, b) => b.positiveReplies - a.positiveReplies);
-        return { id: clientId, name, campaigns } satisfies CopyClient;
+        return { id: clientId, name, campaigns };
       })
     );
 
-    const clients: CopyClient[] = clientResults
+    // Collect all campaigns for batch classification
+    const allForClassify: ClassifyInput[] = [];
+    for (const result of rawClients) {
+      if (result.status !== "fulfilled" || !result.value) continue;
+      for (const c of result.value.campaigns) {
+        const firstStep = c.steps[0];
+        allForClassify.push({
+          id: c.id,
+          name: c.name,
+          subject: firstStep?.subject ?? "",
+          body: firstStep?.body ?? "",
+        });
+      }
+    }
+
+    const classifications = await classifyCampaigns(allForClassify);
+
+    const clients: CopyClient[] = rawClients
       .map((r) => (r.status === "fulfilled" ? r.value : null))
-      .filter((c): c is CopyClient => c !== null && c.campaigns.length > 0)
+      .filter((c): c is NonNullable<typeof c> => c !== null && c.campaigns.length > 0)
+      .map(({ id, name, campaigns }) => ({
+        id,
+        name,
+        campaigns: campaigns
+          .map((c) => {
+            const cls = classifications.get(c.id);
+            return {
+              ...c,
+              category: (cls?.category ?? "cold") as CampaignCategory,
+              subcategory: cls?.subcategory,
+            };
+          })
+          .sort((a, b) => b.positiveReplies - a.positiveReplies),
+      }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     return NextResponse.json(clients);
