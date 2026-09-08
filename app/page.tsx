@@ -351,7 +351,7 @@ export default function CopyLibraryPage() {
   const [seqOpen, setSeqOpen] = useState(false);
   const [seqSteps, setSeqSteps] = useState<SeqStep[]>([{ id: uid(), channel: "email", subject: "", body: "" }]);
   const [activeSeqStep, setActiveSeqStep] = useState(0);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["signal", "micro"]));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["signal", "micro", "clients"]));
 
   useEffect(() => {
     fetch("/api/campaigns")
@@ -516,32 +516,55 @@ export default function CopyLibraryPage() {
       {/* Divider */}
       <div className="mx-4 my-1" style={{ borderTop: "1px solid #f0f0f0" }} />
 
-      {/* Clients */}
-      <div className="px-4 pt-3 pb-1">
-        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#94a3b8" }}>Clients</p>
-      </div>
-      <div className="flex-1 px-2 pb-6 space-y-0.5">
-        {loading ? (
-          <div className="flex items-center gap-2 px-3 py-4 text-sm text-gray-400">
-            <Loader2 className="w-4 h-4 animate-spin" /> Loading…
+      {/* Clients — collapsible dropdown */}
+      <div className="px-2 pb-6">
+        <button
+          onClick={() => toggleGroup("clients")}
+          className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all flex items-center justify-between gap-2"
+          style={{ color: "#374151" }}
+        >
+          <span className="flex items-center gap-2">
+            <span style={{ color: "#9ca3af" }}><Users className="w-3.5 h-3.5" /></span>
+            Clients
+          </span>
+          <span className="flex items-center gap-1.5">
+            {clients.length > 0 && (
+              <span className="text-xs rounded-full px-1.5 py-0.5 font-medium" style={{ background: "#f3f4f6", color: "#9ca3af" }}>
+                {clients.length}
+              </span>
+            )}
+            {expandedGroups.has("clients")
+              ? <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+              : <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+            }
+          </span>
+        </button>
+        {expandedGroups.has("clients") && (
+          <div className="ml-3 mt-0.5 space-y-0.5">
+            {loading ? (
+              <div className="flex items-center gap-2 px-3 py-3 text-xs text-gray-400">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading…
+              </div>
+            ) : (
+              clients.map((client) => {
+                const active = activeView.type === "client" && activeView.clientId === client.id;
+                return (
+                  <button
+                    key={client.id}
+                    onClick={() => { setActiveView({ type: "client", clientId: client.id }); setActiveCampaign(null); }}
+                    className="w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between gap-2"
+                    style={active ? { background: "#f0f4ff", color: "#316BFF" } : { color: "#6b7280" }}
+                  >
+                    <span className="truncate">{client.name}</span>
+                    <span className="text-xs rounded-full px-1.5 py-0.5 font-medium flex-shrink-0"
+                      style={active ? { background: "#dbeafe", color: "#316BFF" } : { background: "#f3f4f6", color: "#9ca3af" }}>
+                      {client.campaigns.length}
+                    </span>
+                  </button>
+                );
+              })
+            )}
           </div>
-        ) : (
-          clients.map((client) => {
-            const active = activeView.type === "client" && activeView.clientId === client.id;
-            return (
-              <button
-                key={client.id}
-                onClick={() => { setActiveView({ type: "client", clientId: client.id }); setActiveCampaign(null); }}
-                className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all"
-                style={active ? { background: "#f0f4ff", color: "#316BFF" } : { color: "#6b7280" }}
-              >
-                <span className="block truncate">{client.name}</span>
-                <span className="block text-xs mt-0.5 truncate" style={{ color: active ? "#93c5fd" : "#d1d5db" }}>
-                  {client.campaigns.length} campaign{client.campaigns.length !== 1 ? "s" : ""}
-                </span>
-              </button>
-            );
-          })
         )}
       </div>
     </div>
