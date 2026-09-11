@@ -31,6 +31,11 @@ export interface CopyCampaign {
   channel: "Email" | "LinkedIn";
   positiveReplies: number;
   positiveReplyRate: number | null;
+  replyRate: number | null;
+  status: "Active" | "Paused" | "Draft" | null;
+  decisionMakers: string;
+  angle: string;
+  masterRecordId: string | null;
   steps: CopyStep[];
   category: CampaignCategory;
   subcategory?: string;
@@ -40,5 +45,8 @@ export interface CopyClient {
   id: string;
   name: string;
   domain?: string;
+  accountOwner?: string;
+  accountManager?: string;
+  accountDescription?: string;
   campaigns: CopyCampaign[];
 }
