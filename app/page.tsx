@@ -16,19 +16,21 @@ import type { CopyClient, CopyCampaign, CopyStep } from "@/lib/copy-types";
 // ── Design tokens ─────────────────────────────────────────────────────────
 
 const P = {
-  bg:          "#F5F4F0",
-  surface:     "#FAFAF8",
-  border:      "#E8E7E3",
-  text:        "#1C1B18",
-  subtext:     "#6B6860",
-  muted:       "#8B8A86",
-  label:       "#A8A69F",
-  primary:     "linear-gradient(135deg,#1c1c1e 0%,#2d2d30 100%)",
-  primarySolid:"#1c1c1e",
-  chip:        "#EEEDEA",
-  chipActive:  "#1c1c1e",
-  chipText:    "#8B8A86",
-  chipTextActive: "#fff",
+  bg:          "#F7F7F7",
+  surface:     "#FFFFFF",
+  border:      "#E7E9E9",
+  text:        "#0C0D0E",
+  subtext:     "#6B787A",
+  muted:       "#6B787A",
+  label:       "#A3B0B6",
+  primary:     "#0C0D0E",
+  primarySolid:"#0C0D0E",
+  chip:        "#F1F3F3",
+  chipActive:  "#0C0D0E",
+  chipText:    "#6B787A",
+  chipTextActive: "#FFFFFF",
+  lime:        "#E0FC04",
+  limeText:    "#141801",
 };
 
 // ── Grammar types ─────────────────────────────────────────────────────────
@@ -635,10 +637,10 @@ function CampaignCard({ campaign, showClient = false, onClick }: {
 }) {
   const isLinkedIn = campaign.channel === "LinkedIn";
   return (
-    <button onClick={onClick} className="text-left transition-all hover:scale-[1.02]"
+    <button onClick={onClick} className="wf-card text-left transition-all hover:scale-[1.02]"
       style={{
-        aspectRatio: "1 / 1", background: "#fff", border: "1.5px solid #f0f0f0",
-        borderRadius: 20, padding: 18, display: "flex", flexDirection: "column",
+        aspectRatio: "1 / 1",
+        borderRadius: 16, padding: 18, display: "flex", flexDirection: "column",
         justifyContent: "space-between", minWidth: 0,
       }}>
       <div className="flex items-start justify-between gap-2">
@@ -737,8 +739,8 @@ function ClientSections({ campaigns, allClients, onSelect }: {
         const clientData = allClients.find((c) => baseName(c.name) === clientBase);
         const open = expanded.has(clientBase);
         return (
-          <div key={clientBase} className="rounded-2xl overflow-hidden"
-            style={{ border: "1.5px solid #f0f0f0", background: "#fff" }}>
+          <div key={clientBase} className="wf-card overflow-hidden"
+            style={{ borderRadius: 16 }}>
             <button onClick={() => toggle(clientBase)}
               className="w-full flex items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-gray-50">
               <ClientLogo name={clientBase} domain={clientData?.domain} />
@@ -1121,7 +1123,7 @@ export default function CopyLibraryPage() {
                 </span>
               </div>
               <p className="text-sm text-gray-500 mb-4">{activeCampaign.client}</p>
-              <div className="rounded-2xl p-4 mb-2" style={{ background: "#f9fafb", border: `1px solid ${P.border}` }}>
+              <div className="rounded-2xl p-4 mb-2" style={{ background: "#F7F7F7", border: `1px solid ${P.border}` }}>
                 {/* Performance row */}
                 <div className="flex gap-4 mb-3 pb-3" style={{ borderBottom: "1px solid #e5e7eb" }}>
                   <div className="flex-1 min-w-0">
@@ -1211,15 +1213,15 @@ export default function CopyLibraryPage() {
                   onClick={() => setActiveStepId((prev) => ({ ...prev, [activeCampaign.id]: s.id }))}
                   className="text-sm px-4 py-2 rounded-xl font-medium transition-all"
                   style={step.id === s.id
-                    ? { background: "#CCFF00", color: "#111" }
+                    ? { background: "#E0FC04", color: "#141801" }
                     : { background: "#fff", color: "#6b7280", border: "1px solid #e5e7eb" }}>
                   {s.label}
                 </button>
               ))}
             </div>
 
-            <div className="rounded-2xl overflow-hidden"
-              style={{ background: "#fff", border: "1.5px solid #f0f0f0", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
+            <div className="wf-card overflow-hidden"
+              style={{ borderRadius: 16 }}>
               {step.subject && (
                 <div className="flex items-center gap-3 px-6 py-3"
                   style={{ borderBottom: `1px solid ${P.border}`, background: "#fafafa" }}>
@@ -1233,7 +1235,7 @@ export default function CopyLibraryPage() {
                   onClick={() => copyText(step.subject ? `Subject: ${step.subject}\n\n${step.body}` : step.body, step.id)}
                   className="absolute top-5 right-5 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
                   style={copied === step.id
-                    ? { background: "#CCFF00", color: "#111" }
+                    ? { background: "#E0FC04", color: "#141801" }
                     : { background: "#f5f5f5", color: "#6b7280" }}>
                   {copied === step.id ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
                 </button>

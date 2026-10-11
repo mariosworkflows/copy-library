@@ -36,21 +36,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f9fafb" }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "#F7F7F7" }}>
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4"
-            style={{ background: "#316BFF" }}>
-            <span className="text-white font-bold text-xl">W</span>
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-4"
+            style={{ background: "#0C0D0E" }}>
+            <span className="text-white font-bold text-base">W</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Copy Library</h1>
-          <p className="text-sm mt-1" style={{ color: "#94a3b8" }}>Workflows.io</p>
+          <h1 className="text-2xl font-bold" style={{ color: "#0C0D0E", fontWeight: 270 }}>Copy Library</h1>
+          <p className="text-sm mt-1" style={{ color: "#6B787A" }}>Workflows.io</p>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl p-8" style={{ background: "#fff", border: "1.5px solid #f0f0f0", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }}>
-          <h2 className="text-lg font-bold text-gray-900 mb-6">Sign in</h2>
+        <div className="rounded-2xl p-8 wf-card">
+          <h2 className="text-lg mb-6" style={{ color: "#0C0D0E", fontWeight: 550 }}>Sign in</h2>
 
           {error && (
             <div className="mb-5 px-4 py-3 rounded-xl text-sm" style={{ background: "#fef2f2", color: "#dc2626" }}>
@@ -60,9 +60,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Work Email</label>
+              <label className="block text-xs uppercase tracking-wide mb-1.5" style={{ color: "#6B787A", fontWeight: 550, letterSpacing: "0.04em" }}>Work Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#A3B0B6" }} />
                 <input
                   type="email"
                   value={email}
@@ -70,17 +70,17 @@ export default function LoginPage() {
                   placeholder="you@workflows.io"
                   required
                   className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl outline-none transition-all"
-                  style={{ border: "1.5px solid #e5e7eb", background: "#fafafa" }}
-                  onFocus={(e) => (e.target.style.borderColor = "#316BFF")}
-                  onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
+                  style={{ border: "1.5px solid #E7E9E9", background: "#F7F7F7", color: "#0C0D0E" }}
+                  onFocus={(e) => (e.target.style.borderColor = "#0C0D0E")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E7E9E9")}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Password</label>
+              <label className="block text-xs uppercase tracking-wide mb-1.5" style={{ color: "#6B787A", fontWeight: 550, letterSpacing: "0.04em" }}>Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#A3B0B6" }} />
                 <input
                   type={showPw ? "text" : "password"}
                   value={password}
@@ -88,14 +88,15 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   required
                   className="w-full pl-9 pr-10 py-2.5 text-sm rounded-xl outline-none transition-all"
-                  style={{ border: "1.5px solid #e5e7eb", background: "#fafafa" }}
-                  onFocus={(e) => (e.target.style.borderColor = "#316BFF")}
-                  onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
+                  style={{ border: "1.5px solid #E7E9E9", background: "#F7F7F7", color: "#0C0D0E" }}
+                  onFocus={(e) => (e.target.style.borderColor = "#0C0D0E")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E7E9E9")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: "#A3B0B6" }}
                 >
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -105,17 +106,17 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity disabled:opacity-60"
-              style={{ background: "#316BFF", color: "#fff" }}
+              className="w-full py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity disabled:opacity-60"
+              style={{ background: "#0C0D0E", color: "#FFFFFF", fontWeight: 550 }}
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign in"}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-400 mt-5">
+        <p className="text-center text-sm mt-5" style={{ color: "#6B787A" }}>
           No account?{" "}
-          <Link href="/register" className="font-semibold" style={{ color: "#316BFF" }}>
+          <Link href="/register" className="font-semibold" style={{ color: "#0C0D0E" }}>
             Create one
           </Link>
         </p>

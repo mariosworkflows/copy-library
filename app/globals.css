@@ -2,16 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+/* ── Helvetica Now Var ────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "Helvetica Now Var";
+  src: url("/fonts/HelveticaNowVar.ttf") format("truetype-variations");
+  font-weight: 270 700;
+  font-style: normal;
+  font-display: swap;
 }
 
+/* ── workflows.io design tokens ───────────────────────────────────────────── */
+:root {
+  --wf-canvas:    #F7F7F7;
+  --wf-surface:   #FFFFFF;
+  --wf-ink:       #0C0D0E;
+  --wf-lime:      #E0FC04;
+  --wf-lime-text: #141801;
+  --wf-lime-hover:#EDFF63;
+  --wf-muted:     #6B787A;
+  --wf-subtle:    #F1F3F3;
+  --wf-border:    #E7E9E9;
+  --wf-border-hover: #DDDEDF;
+
+  --font-sans: "Helvetica Now Var", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 html {
   -webkit-font-smoothing: antialiased;
 }
 
 body {
   font-family: var(--font-sans);
-  background: #f9fafb;
-  color: #111827;
+  background: var(--wf-canvas);
+  color: var(--wf-ink);
+}
+
+h1, h2, h3, h4 {
+  font-weight: 270;
+  letter-spacing: 0;
+}
+
+h5, h6 {
+  font-weight: 550;
+}
+
+/* ── Component classes ────────────────────────────────────────────────────── */
+
+/* Card: white surface with soft layered shadow */
+.wf-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #EBEBEB;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.wf-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+  border-color: #DDDEDF;
+}
+
+/* Pill: uppercase label badge */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--wf-border);
+  background: rgba(255,255,255,0.85);
+  font-size: 11px;
+  font-weight: 550;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--wf-ink);
+}
+
+/* Lime CTA button */
+.btn-lime {
+  background: var(--wf-lime);
+  color: var(--wf-lime-text);
+  border-radius: 2px;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 550;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  transition: background-color 0.15s ease;
+}
+.btn-lime:hover {
+  background: var(--wf-lime-hover);
+}
+
+/* Lime stat highlight */
+.stat-lime {
+  background: rgba(224,252,4,0.08);
+  border: 1px solid rgba(224,252,4,0.2);
+}
+
+/* Dark contrast block */
+.section-dark {
+  background: var(--wf-ink);
+  color: #F8F8F8;
+  border-radius: 16px;
 }
